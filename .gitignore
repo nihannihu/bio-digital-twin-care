@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
+build/
+dist/
+
+# Misc
+.DS_Store
+.env
+.npm
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project Specific
+# We WANT to commit the knowledge base JSONs so others can run it.
+# We DO NOT want to commit the actual MongoDB data directory if it's large/binary.
+data/
+db/

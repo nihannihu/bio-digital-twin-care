@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox Body | Bio-Digital Twin</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css"> <!-- Reusing glassmorphism styles -->
+    <style>
+        /* Specific Sandbox overrides */
+        .timeline-container {
+            position: relative;
+            height: 350px;
+            margin-top: 2rem;
+        }
+
+        .stack-list {
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .stack-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stack-item .remove {
+            color: #ef4444;
+            cursor: pointer;
+        }
+
+        .risk-badge {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .risk-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+
+        .risk-med {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+            border: 1px solid #facc15;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-glow"></div>
+
+    <header>
+        <div class="logo"><span class="logo-icon">🧬</span><span class="logo-text">SANDBOX.BODY</span></div>
+        <div class="status-badge"><span class="dot"></span> Client-Side Simulation Active</div>
+    </header>
+
+    <main class="container">
+        <section class="hero" style="margin-bottom: 2rem;">
+            <h1>Everyday <span class="gradient-text">Decisions Engine</span></h1>
+            <p class="subtitle">Stack your daily substances. See the biological future.</p>
+        </section>
+
+        <div class="grid-layout">
+            <!-- Left: Stack Builder -->
+            <div class="card glass-panel">
+                <div class="card-header">
+                    <h2>1. Build Your Stack</h2>
+                </div>
+
+                <form id="addEventForm" class="form-group">
+                    <div class="row">
+                        <div class="col">
+                            <label>Time</label>
+                            <input type="time" id="eventTime" value="08:00" required>
+                        </div>
+                        <div class="col">
+                            <label>Dose (mg)</label>
+                            <input type="number" id="eventDose" value="100" required>
+                        </div>
+                    </div>
+                    <label>Substance</label>
+                    <select id="eventDrug" class="input-field" style="margin-bottom: 1rem;">
+                        <option value="Caffeine">Caffeine (Coffee)</option>
+                        <option value="Alcohol">Alcohol (Wine/Beer)</option>
+                        <option value="Paracetamol">Paracetamol (Tylenol)</option>
+                        <option value="Ibuprofen">Ibuprofen (Advil)</option>
+                        <option value="Nicotine">Nicotine (Vape/Cig)</option>
+                    </select>
+
+                    <button type="submit" class="btn-primary" style="margin-bottom: 1rem;">+ Add to Timeline</button>
+                </form>
+
+                <div class="stack-list" id="stackList">
+                    <!-- Items go here -->
+                </div>
+                <button id="runSimBtn" class="btn-primary"
+                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); margin-top: 1rem;">
+                    ▶ Run Forecast
+                </button>
+            </div>
+
+            <!-- Right: Timeline & Dashboard -->
+            <div class="card glass-panel">
+                <div class="results-header">
+                    <h3>Biological State Timeline (24h)</h3>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="active" onclick="switchTab('timeline')">Daily Timeline</button>
+                    <button onclick="switchTab('prognosis')">Oracle Prognosis (5-Year)</button>
+                    <button onclick="switchTab('body')">Virtual Body (3D)</button>
+                </div>
+
+                <!-- Risk Flags -->
+                <div id="riskContainer" style="margin-bottom: 1rem; min-height: 40px;">
+                    <span class="text-muted">No risks detected yet.</span>
+                </div>
+
+
+
+
+
+                <style>
+                    .tabs {
+                        margin-bottom: 20px;
+                        border-bottom: 2px solid #334155;
+                    }
+
+                    .tabs button {
+                        background: none;
+                        border: none;
+                        padding: 10px 20px;
+                        color: #94a3b8;
+                        cursor: pointer;
+                        font-size: 1rem;
+                    }
+
+                    .tabs button.active {
+                        color: #22d3ee;
+                        border-bottom: 2px solid #22d3ee;
+                    }
+
+                    #prognosisView {
+                        display: none;
+                    }
+                </style>
+
+                <!-- Timeline View (Existing) -->
+                <div id="timelineView">
+                    <div class="chart-container">
+                        <canvas id="sandboxChart"></canvas>
+                    </div>
+
+                    <div class="status-grid">
+                        <div class="status-card">
+                            <div class="icon">🧠</div>
+                            <div class="status-info">
+                                <h3>Neuro Status</h3>
+                                <p id="neuroScore" style="color: #22d3ee">Optimal</p>
+                            </div>
+                        </div>
+                        <div class="status-card">
+                            <div class="icon">🛡️</div>
+                            <div class="status-info">
+                                <h3>Liver Load</h3>
+                                <p id="detoxScore" style="color: #10b981">Healthy</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prognosis View (New) -->
+                <div id="prognosisView">
+                    <div class="chart-container">
+                        <canvas id="prognosisChart"></canvas>
+                    </div>
+                    <div id="longTermRisks" style="margin-top: 20px;"></div>
+                </div>
+
+                <!-- 3D Body View (New) -->
+                <div id="bodyView" style="display: none;">
+                    <iframe src="virtual_heart.html" title="Bio-Digital Twin"
+                        style="width: 100%; height: 800px; border: none; border-radius: 12px; background: #050505;"></iframe>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="prognosis.js"></script> <!-- Load Prediction Engine -->
+    <script src="sandbox.js"></script> <!-- Main Logic -->
+</body>
+
+</html>

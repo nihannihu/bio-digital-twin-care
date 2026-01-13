@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # 1. MongoDB Service
+  mongo:
+    image: mongo:6.0
+    container_name: bio_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  # 2. Backend Service (Node.js)
+  backend:
+    build: ./backend
+    container_name: bio_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/bio-twin
+      - PORT=3000
+    depends_on:
+      - mongo
+    command: sh -c "node seeder.js && node server.js" 
+    # ^ Auto-seed database on start so valid data is always available
+
+  # 3. Frontend (Simple static server for Vanilla JS)
+  # We use a lightweight nginx or python image just to serve the files
+  frontend:
+    image: python:3.9-slim
+    container_name: bio_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend_vanilla:/app
+    ports:
+      - "8000:8000"
+    command: python -m http.server 8000
+
+volumes:
+  mongo-data:

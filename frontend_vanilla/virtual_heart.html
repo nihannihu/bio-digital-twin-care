@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bio-Digital Twin 3D | Interactive Pulse</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #050505;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+            color: white;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a5f3fc;
+        }
+
+        h2 {
+            margin: 15px 0 5px 0;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        p {
+            margin: 0 0 15px 0;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-align: left;
+            position: relative;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+
+        .btn-lab {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-lab:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #btn-reset {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            margin-top: 20px;
+        }
+
+        #stats {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        /* Fix for white-on-white options in some browsers */
+        option {
+            background-color: #1e293b;
+            /* Dark slate */
+            color: white;
+        }
+
+        /* Effect Indicators */
+        .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            float: right;
+            opacity: 0.8;
+        }
+
+        .badge-stim {
+            background: #f97316;
+            color: white;
+        }
+
+        .badge-dep {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .badge-tox {
+            background: #10b981;
+            color: white;
+        }
+
+        #custom-controls {
+            display: none;
+            margin-top: 10px;
+        }
+
+        /* Vignette Overlay */
+        #vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            z-index: 5;
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .tox-vignette {
+            background: radial-gradient(circle, transparent 40%, #064e3b 90%);
+            opacity: 1 !important;
+        }
+
+        .crit-vignette {
+            background: radial-gradient(circle, transparent 40%, #7f1d1d 90%);
+            animation: pulse-red 1s infinite alternate;
+            opacity: 1 !important;
+        }
+
+        @keyframes pulse-red {
+            from {
+                opacity: 0.6;
+            }
+
+            to {
+                opacity: 0.9;
+            }
+        }
+
+        .blur-effect {
+            filter: blur(4px);
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+
+<body>
+
+    <div id="ui">
+        <h1>Bio-Twin 3D</h1>
+        <p>Current Status: <span id="status-text" style="color: #22d3ee; font-weight: bold;">Normal</span></p>
+
+        <h2>Chemical Lab</h2>
+        <select id="drug-select">
+            <option value="">-- Select Compound --</option>
+            <option value="Loading">Loading options...</option>
+        </select>
+        <button id="btn-inject" class="btn-lab" style="background: #22d3ee; color: black; text-align: center;">💉 Inject
+            Selected</button>
+
+        <h2>Quick Protocols</h2>
+        <button id="btn-adrenaline" class="btn-lab" style="border-left: 3px solid #f97316;">
+            Adrenaline <span class="badge badge-stim">STIM</span>
+        </button>
+        <button id="btn-sedative" class="btn-lab" style="border-left: 3px solid #3b82f6;">
+            Morphine <span class="badge badge-dep">DEP</span>
+        </button>
+        <button id="btn-toxin" class="btn-lab" style="border-left: 3px solid #10b981;">
+            Neuro-Toxin <span class="badge badge-tox">TOX</span>
+        </button>
+
+        <button id="btn-reset">🔄 Clear System</button>
+
+        <div id="stats">
+            <div class="stat-row"><span>Heart Rate:</span> <span id="bpm-val">70</span> BPM</div>
+            <div class="stat-row"><span>Respiration:</span> <span id="resp-val">12 bpm</span></div>
+            <div class="stat-row"><span>Blood Pressure:</span> <span id="bp-val">120/80</span></div>
+            <div class="stat-row"><span>O2 Saturation:</span> <span id="o2-val">98%</span></div>
+        </div>
+
+        <div id="info-panel"
+            style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: none;">
+            <h3 style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; margin: 0 0 5px 0;">Medical
+                Analysis</h3>
+            <p id="info-text" style="font-size: 0.85rem; line-height: 1.4; color: #cbd5e1;"></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { GlitchPass } from 'three/addons/postprocessing/GlitchPass.js';
+
+        // --- STATE ---
+        let bpm = 70;
+        let respiratoryRate = 12; // Breaths per minute
+        let targetColor = new THREE.Color(0xef4444);
+        let targetRimColor = new THREE.Color(0x22d3ee);
+        let glitchActive = false;
+        let freezeActive = false;
+
+        // --- 1. SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050505, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        document.body.appendChild(renderer.domElement);
+
+        const vignetteDiv = document.createElement('div');
+        vignetteDiv.id = 'vignette';
+        document.body.appendChild(vignetteDiv);
+
+        // --- 2. LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+
+        const mainLight = new THREE.PointLight(0xffffff, 2, 50);
+        mainLight.position.set(5, 5, 5);
+        scene.add(mainLight);
+
+        const rimLight = new THREE.SpotLight(0x22d3ee, 5);
+        rimLight.position.set(-5, 5, 10);
+        rimLight.lookAt(0, 0, 0);
+        scene.add(rimLight);
+
+        // --- 3. THE "REALISTIC" HEART GEOMETRY ---
+        // Formula: x = 16sin^3(t), y = 13cos(t) - 5cos(2t) - 2cos(3t) - cos(4t)
+
+        const shape = new THREE.Shape();
+        const x = -2.5, y = -5;
+        shape.moveTo(x + 2.5, y + 2.5);
+        shape.bezierCurveTo(x + 2.5, y + 2.5, x + 2, y, x, y);
+        shape.bezierCurveTo(x - 3, y, x - 3, y + 3.5, x - 3, y + 3.5);
+        shape.bezierCurveTo(x - 3, y + 5.5, x - 1.5, y + 7.7, x + 2.5, y + 9.5);
+        shape.bezierCurveTo(x + 6, y + 7.7, x + 8, y + 5.5, x + 8, y + 3.5);
+        shape.bezierCurveTo(x + 8, y + 3.5, x + 8, y, x + 5, y);
+        shape.bezierCurveTo(x + 3.5, y, x + 2.5, y + 2.5, x + 2.5, y + 2.5);
+
+        const extrudeSettings = {
+            depth: 2,
+            bevelEnabled: true,
+            bevelSegments: 10,
+            steps: 4,
+            bevelSize: 1,
+            bevelThickness: 1
+        };
+
+        const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        geometry.center(); // Center the geometry
+        geometry.rotateZ(Math.PI); // Flip it upright
+
+        const material = new THREE.MeshPhysicalMaterial({
+            color: 0x660000, // Dark Red Blood
+            emissive: 0x330000,
+            roughness: 0.2, // Wet look
+            metalness: 0.1,
+            clearcoat: 1.0, // Mucus layer
+            clearcoatRoughness: 0.1,
+            reflectivity: 1.0
+        });
+
+        const heart = new THREE.Mesh(geometry, material);
+        heart.scale.set(0.2, 0.2, 0.2); // Adjust scale
+        scene.add(heart);
+
+        // Inner Light (Veins)
+        const veinLight = new THREE.PointLight(0xff0000, 1, 3);
+        heart.add(veinLight);
+
+        const coreGeo = new THREE.IcosahedronGeometry(0.8, 2);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0xff3333, wireframe: false, transparent: true, opacity: 0.8 });
+        const core = new THREE.Mesh(coreGeo, coreMat);
+        heart.add(core);
+
+        // --- 3.5 LUNGS (Cardio-Respiratory Upgrade V2: Anatomical Lobes) ---
+        // We use groups to hold the multiple lobes of each lung
+        const leftLung = new THREE.Group();
+        const rightLung = new THREE.Group();
+        // REMOVED VISUALS PER USER REQUEST
+        // scene.add(leftLung);
+        // scene.add(rightLung);
+
+        // Fleshy Tissue Material
+        const lungMat = new THREE.MeshPhysicalMaterial({
+            color: 0xd96b6b, // Muted Pink/Red (Healthy Tissue)
+            emissive: 0x3d0f0f,
+            roughness: 0.7,  // Organic, not shiny
+            metalness: 0.1,
+            reflectivity: 0.1,
+            clearcoat: 0.1,  // Wet membrane
+            clearcoatRoughness: 0.4,
+            transmission: 0, // Opaque tissue
+            side: THREE.FrontSide
+        });
+
+        // Helper to create a lobe
+        function createLobe(width, height, depth, x, y, z, rotZ, rotY = 0) {
+            const geo = new THREE.SphereGeometry(1, 32, 32);
+            const mesh = new THREE.Mesh(geo, lungMat);
+            mesh.scale.set(width, height, depth);
+            mesh.position.set(x, y, z);
+            mesh.rotation.z = rotZ;
+            mesh.rotation.y = rotY;
+            return mesh;
+        }
+
+        // --- LEFT LUNG (2 Lobes: Superior, Inferior) + Cardiac Notch ---
+        // Superior Lobe
+        leftLung.add(createLobe(1.6, 2.5, 1.6, -2.2, 1.8, -1.5, 0.2));
+        // Inferior Lobe (Angled away to make room for heart)
+        leftLung.add(createLobe(1.5, 2.8, 1.5, -2.8, -1.5, -1.2, 0.4));
+
+        // --- RIGHT LUNG (3 Lobes: Superior, Middle, Inferior) - Larger ---
+        // Superior Lobe
+        rightLung.add(createLobe(1.7, 2.5, 1.7, 2.2, 2.0, -1.5, -0.2));
+        // Middle Lobe
+        rightLung.add(createLobe(1.5, 1.8, 1.6, 2.6, 0, -1.2, -0.1));
+        // Inferior Lobe
+        rightLung.add(createLobe(1.6, 2.8, 1.6, 2.4, -2.2, -1.5, -0.3));
+
+        // Positioning the whole organ groups
+        leftLung.position.set(-0.5, 1, -1);
+        rightLung.position.set(0.5, 1, -1);
+
+
+        camera.position.z = 6;
+
+        // --- 4. PARTICLES ---
+        const particlesGeo = new THREE.BufferGeometry();
+        const particlesCount = 1500;
+        const posArray = new Float32Array(particlesCount * 3);
+        const velocityArray = new Float32Array(particlesCount);
+
+        for (let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 15;
+            if (i < particlesCount) velocityArray[i] = Math.random();
+        }
+
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.03,
+            color: 0x22d3ee,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particles = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particles);
+
+        // --- 5. POST PROCESSING ---
+        const composer = new EffectComposer(renderer);
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0;
+        bloomPass.strength = 1.2;
+        bloomPass.radius = 0.5;
+        composer.addPass(bloomPass);
+
+        const glitchPass = new GlitchPass();
+        glitchPass.enabled = false;
+        composer.addPass(glitchPass);
+
+        // --- 6. ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = performance.now() * 0.001;
+
+            // Heartbeat Physics
+            let bps = bpm / 60;
+            if (freezeActive) bps = 0;
+
+            let scaleBase = 0.2;
+            let scale = scaleBase;
+
+            if (!freezeActive) {
+                // Realistic contraction
+                let t = time * bps;
+                // Double beat pattern (- --- - ---) using sin math
+                let contraction = Math.sin(t * Math.PI * 2) > 0 ?
+                    Math.pow(Math.sin(t * Math.PI * 2), 4) :
+                    Math.pow(Math.sin(t * Math.PI * 2), 2) * 0.5;
+
+                let jitter = (bpm > 140) ? (Math.random() - 0.5) * 0.02 : 0;
+                scale = scaleBase + contraction * 0.05 + jitter;
+            } else {
+                scale = scaleBase + Math.sin(time) * 0.005;
+            }
+
+            heart.scale.set(scale, scale, scale);
+            heart.rotation.y = Math.sin(time * 0.5) * 0.2; // Gentle sway
+
+            // --- PER-FRAME LUNG ANIMATION (Breathing) ---
+            const breathFreq = respiratoryRate / 60; // Breaths per second
+            // Simple Sine wave for breathing
+            const breathScale = 1 + Math.sin(time * breathFreq * Math.PI * 2) * 0.05;
+
+            // Scaling the entire LUNG GROUPS now
+            leftLung.scale.set(breathScale, breathScale, breathScale);
+            rightLung.scale.set(breathScale, breathScale, breathScale);
+
+            // Color Lerping
+            heart.material.color.lerp(targetColor, 0.05);
+            heart.material.emissive.lerp(targetColor, 0.05);
+            rimLight.color.lerp(targetRimColor, 0.05);
+
+            // Particles Flow
+            particles.rotation.y += (freezeActive ? 0.0001 : 0.001 * (bpm / 60));
+            if (glitchActive) {
+                particles.rotation.z += 0.01;
+                particlesMat.size = 0.05 + Math.sin(time * 10) * 0.02;
+            } else {
+                particlesMat.size = 0.03;
+            }
+
+            // Camera Shake
+            if (bpm > 160 && !freezeActive) {
+                camera.position.x += (Math.random() - 0.5) * 0.05;
+                camera.position.y += (Math.random() - 0.5) * 0.05;
+            }
+            camera.position.x *= 0.9;
+            camera.position.y *= 0.9;
+
+            composer.render();
+        }
+        animate();
+
+        // --- 7. LOGIC & API ---
+
+        function addExtras(select) {
+            const extras = [
+                { name: "Cyanide", type: "Toxin", neuro: -50 },
+                { name: "Snake Venom", type: "Toxin", neuro: -20 },
+                { name: "Liquid Nitrogen", type: "Elemental", neuro: 0 },
+                { name: "Magma Extract", type: "Elemental", neuro: 100 }
+            ];
+            extras.forEach(e => {
+                const opt = document.createElement('option');
+                opt.value = e.name;
+                opt.textContent = `${e.name} (${e.type}) [SIMULATED]`;
+                opt.dataset.type = e.type;
+                opt.dataset.neuro = e.neuro;
+                select.appendChild(opt);
+            });
+        }
+
+        // Fetch Drugs from Backend
+        fetch('http://127.0.0.1:3000/api/drugs')
+            .then(res => {
+                if (!res.ok) throw new Error("Backend Error");
+                return res.json();
+            })
+            .then(data => {
+                const select = document.getElementById('drug-select');
+                select.innerHTML = '<option value="">-- Select Compound --</option>';
+                data.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.drug;
+                    opt.textContent = `${d.drug} (${d.type})`;
+
+                    // --- PHASE 7: DATA INTEGRATION ---
+                    // Store metrics in DOM for the Logic Engine
+                    opt.dataset.type = d.type || "Unknown";
+                    // Fallback to defaults if stats missing
+                    const neuro = d.axis_effects ? d.axis_effects.neuro : 0;
+                    const detox = d.axis_effects ? d.axis_effects.detox : 0;
+                    opt.dataset.neuro = neuro;
+                    opt.dataset.detox = detox;
+
+                    select.appendChild(opt);
+                });
+
+                addExtras(select);
+            })
+            .catch(err => {
+                console.error("Failed to load drugs", err);
+                const select = document.getElementById('drug-select');
+                select.innerHTML = '<option value="">-- Backend Offline (Simulated Only) --</option>';
+                addExtras(select);
+            });
+
+        // The FX Engine (Logic Engine V2)
+        function applyEffect(name, type, neuroScore) {
+            glitchPass.enabled = false;
+            freezeActive = false;
+
+            // --- CSS FX RESET ---
+            const vign = document.getElementById('vignette');
+            vign.className = '';
+            document.body.querySelector('canvas').classList.remove('blur-effect');
+
+            let status = `${name} Active`;
+            let newBpm = 70;
+            let newRespRate = 12; // Normal breathing
+            let color = "#660000"; // Organic Dark Red
+            let rim = "#22d3ee";
+            let partColor = 0x22d3ee;
+            let bp = "120/80";
+
+            // Normalized inputs
+            const lowerName = name.toLowerCase();
+            const lowerType = type ? type.toLowerCase() : "";
+            const neuro = parseFloat(neuroScore) || 0;
+
+            // --- DATA DRIVEN LOGIC ---
+            // 1. Toxin Override (Specific)
+            if (lowerType.includes("toxin") || lowerName.includes("venom") || lowerName.includes("cyanide")) {
+                newBpm = 200;
+                newRespRate = 40;
+                color = "#064e3b";
+                rim = "#059669";
+                partColor = 0x00ff00;
+                glitchPass.enabled = true;
+                status = "!!! CRITICAL FAILURE DETECTED !!!";
+                vign.className = 'tox-vignette';
+
+                setTimeout(() => {
+                    freezeActive = true;
+                    newBpm = 0;
+                    respiratoryRate = 0;
+                    vign.className = 'crit-vignette';
+                    updateUI("Terminated", 0, 0, "#333", "#000", "0/0", "0%");
+                }, 3000);
+            }
+            // 2. Stimulant Logic (Neuro > 3)
+            else if (neuro > 3 || lowerType.includes("stimulant") || lowerName.includes("adrenaline")) {
+                // Multiplier based on neuro score
+                let intensity = Math.min((neuro / 5), 2); // Cap at 2x
+                newBpm = 70 + (40 * intensity);
+                if (lowerName.includes("adrenaline")) newBpm = 160; // manual override
+
+                newRespRate = 12 + (8 * intensity);
+
+                color = "#ff4500";
+                rim = "#ff0000";
+                partColor = 0xffaa00;
+                bp = `${Math.floor(120 + 20 * intensity)}/${Math.floor(80 + 10 * intensity)}`;
+                status = `High Alert (Neuro: +${neuro})`;
+                if (newBpm > 150) status = ">>> HYPER-STIMULATION <<<";
+            }
+            // 3. Depressant Logic (Neuro < -1)
+            else if (neuro < -1 || lowerType.includes("depressant") || lowerName.includes("alcohol")) {
+                let intensity = Math.min((Math.abs(neuro) / 5), 2);
+                newBpm = 70 - (20 * intensity);
+                newRespRate = 12 - (4 * intensity);
+
+                color = "#3b0764";
+                rim = "#1e1b4b";
+                partColor = 0x3b82f6;
+                bp = `${Math.floor(120 - 20 * intensity)}/${Math.floor(80 - 10 * intensity)}`;
+                status = `Sedative Effect (Neuro: ${neuro})`;
+
+                // Apply Visual Blur for strong depressants
+                if (neuro < -4 || lowerName.includes("alcohol")) {
+                    document.body.querySelector('canvas').classList.add('blur-effect');
+                    status = "System Sedated";
+                }
+            }
+            // 4. Analgesic / Neutral
+            else {
+                status = `${name} (Stable)`;
+                color = "#991b1b"; // Slightly lighter red
+            }
+
+            // Elemental Overrides (Special FX)
+            if (lowerName.includes("nitrogen") || lowerName.includes("freeze")) {
+                newBpm = 10;
+                newRespRate = 4;
+                color = "#cffafe";
+                rim = "#ffffff";
+                freezeActive = true;
+                status = "Hypothermia";
+                vign.className = '';
+            }
+            else if (lowerName.includes("magma") || lowerName.includes("burn")) {
+                newBpm = 180;
+                newRespRate = 50;
+                color = "#450a0a";
+                rim = "#f59e0b";
+                partColor = 0xff4500;
+                status = "Hyperthermia";
+                vign.className = 'crit-vignette';
+            }
+
+            if (!freezeActive) {
+                updateUI(status, newBpm, newRespRate, color, rim, bp, "100%");
+                particlesMat.color.setHex(partColor);
+            }
+
+            // --- EDUCATIONAL INFO ---
+            const infoPanel = document.getElementById('info-panel');
+            const infoText = document.getElementById('info-text');
+            infoPanel.style.display = 'block';
+
+            let description = `<b>${name}</b> (${type}):<br>Neuro-Impact: ${neuro}<br>`;
+
+            if (lowerName.includes("adrenaline")) {
+                description += "The 'Fight or Flight' hormone. Forces rapid lung expansion.";
+            } else if (lowerName.includes("morphine")) {
+                description += "Opioid. Induces respiratory depression (slow breathing).";
+            } else if (lowerName.includes("toxin")) {
+                description += "Disrupts cellular respiration. Causes system failure.";
+            } else if (lowerName.includes("alcohol")) {
+                description += "Depressant. Causes visual impairment (Blur) and slowed reaction.";
+            } else {
+                description += "Effect calculated from database metrics.";
+            }
+
+            infoText.innerHTML = description;
+        }
+
+        function updateUI(text, bpmVal, respVal, col, rim, bp, o2) {
+            document.getElementById('status-text').innerText = text;
+            document.getElementById('status-text').style.color = col;
+            document.getElementById('bpm-val').innerText = Math.floor(bpmVal);
+            document.getElementById('resp-val').innerText = Math.floor(respVal) + " bpm";
+            document.getElementById('bp-val').innerText = bp;
+
+            bpm = bpmVal;
+            respiratoryRate = respVal;
+            targetColor.setHex(parseInt(col.replace('#', '0x')));
+            targetRimColor.setHex(parseInt(rim.replace('#', '0x')));
+        }
+
+        // Event Listeners
+        document.getElementById('btn-inject').addEventListener('click', () => {
+            const select = document.getElementById('drug-select');
+            const value = select.value;
+            if (!value) return;
+
+            const selectedOption = select.options[select.selectedIndex];
+            const text = selectedOption.text;
+
+            // Read metadata from dataset (DATA DRIVEN)
+            const type = selectedOption.dataset.type || "Unknown";
+            const neuro = selectedOption.dataset.neuro || 0;
+
+            applyEffect(value, type, neuro);
+        });
+
+        // Manual buttons - simulated data
+        document.getElementById('btn-adrenaline').addEventListener('click', () => applyEffect("Adrenaline", "Stimulant", 10));
+        document.getElementById('btn-sedative').addEventListener('click', () => applyEffect("Morphine", "Depressant", -10));
+        document.getElementById('btn-toxin').addEventListener('click', () => applyEffect("Neuro-Toxin", "Toxin", -50));
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            glitchPass.enabled = false;
+            freezeActive = false;
+            updateUI("Normal", 70, 12, "#ef4444", "#22d3ee", "120/80", "98%");
+            particlesMat.color.setHex(0x22d3ee);
+            targetColor.setHex(0x660000);
+
+            // Reset VFX
+            document.getElementById('vignette').className = '';
+            document.body.querySelector('canvas').classList.remove('blur-effect');
+        });
+
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio-Digital Twin | Human Body Simulator</title>
+    
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-glow"></div>
+
+    <header>
+        <div class="logo">
+            <span class="logo-icon">🧬</span>
+            <span class="logo-text">BIO.TWIN</span>
+        </div>
+        <div class="status-badge">
+            <span class="dot"></span> System Active
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Predict Your <span class="gradient-text">Biological Future</span></h1>
+            <p class="subtitle">Simulate how your personal genome metabolizes medications in real-time. Avoid side effects before they happen.</p>
+        </section>
+
+        <!-- Main Grid -->
+        <div class="grid-layout">
+            
+            <!-- Input Panel -->
+            <div class="card glass-panel input-section">
+                <div class="card-header">
+                    <span class="icon">💊</span>
+                    <h2>Simulation Parameters</h2>
+                </div>
+                
+                <form id="simForm">
+                    <div class="form-group">
+                        <label>Drug / Substance</label>
+                        <div class="select-wrapper">
+                            <select id="drug" name="drug">
+                                <option value="Espresso">Espresso (Coffee)</option>
+                                <option value="Coke">Coke (Caffeine)</option>
+                                <option value="Energy Drink">Energy Drink</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col">
+                            <label>Amount</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="amount" name="amount_mg" value="65" required>
+                                <span class="unit">mg</span>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label>Time</label>
+                            <input type="time" id="time" name="time" value="08:00" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>User ID (Bio-ID)</label>
+                        <input type="text" id="userId" name="userId" value="nihan_001">
+                        <small>Simulates auth & DNA retrieval</small>
+                    </div>
+
+                    <button type="submit" id="simulateBtn" class="btn-primary">
+                        Run Bio-Simulation <span class="arrow">→</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="card glass-panel results-section hidden" id="resultsPanel">
+                <div class="results-header">
+                    <div class="genetic-profile">
+                        <span class="label">GENOTYPE DETECTED</span>
+                        <h3 id="genotypeDisplay">--</h3>
+                    </div>
+                    <div class="crash-metric">
+                        <span class="label">SLEEP ZONE STARTS</span>
+                        <h3 id="crashTimeDisplay" class="highlight">--:--</h3>
+                    </div>
+                </div>
+
+                <div class="phenotype-banner" id="phenotypeBanner">
+                    <span id="phenotypeText">Loading...</span>
+                </div>
+                
+                <p class="recommendation" id="recommendationText">...</p>
+
+                <div class="chart-container">
+                    <canvas id="bioChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="card glass-panel empty-state" id="emptyState">
+                <div class="pulse-circle"></div>
+                <h3>Ready to Simulate</h3>
+                <p>Enter parameters to visualize metabolic decay.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

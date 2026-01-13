@@ -1,0 +1,179 @@
+[
+    {
+        "drug": "Caffeine",
+        "type": "Stimulant",
+        "gene": "CYP1A2",
+        "variant_id": "rs762551",
+        "v_d": 0.6,
+        "absorption_lag": 0.75,
+        "genotypes": {
+            "AA": {
+                "phenotype": "Fast Metabolizer",
+                "half_life_hours": 4,
+                "clearance_modifier": 1.2,
+                "toxicity_risk": "Low",
+                "description": "Rapid clearance. Sleep impact minimal after 6h."
+            },
+            "AC": {
+                "phenotype": "Slow Metabolizer",
+                "half_life_hours": 8,
+                "clearance_modifier": 1.0,
+                "toxicity_risk": "Moderate",
+                "description": "Standard clearance. Caffeine lingers. Avoid after 2PM."
+            },
+            "CC": {
+                "phenotype": "Ultra-Slow Metabolizer",
+                "half_life_hours": 12,
+                "clearance_modifier": 0.6,
+                "toxicity_risk": "High",
+                "description": "Risk of all-night insomnia. Limit to morning only."
+            }
+        },
+        "axis_effects": {
+            "neuro": 8,
+            "detox": 1,
+            "drug_load": 1
+        },
+        "thresholds": {
+            "sleep_disruption": 15,
+            "liver_toxicity": 10000,
+            "lethal": 10000
+        }
+    },
+    {
+        "drug": "Alcohol",
+        "type": "Depressant",
+        "gene": "ADH1B",
+        "variant_id": "rs1229984",
+        "v_d": 0.6,
+        "absorption_lag": 0.5,
+        "genotypes": {
+            "GG": {
+                "phenotype": "Normal Metabolizer",
+                "half_life_hours": 1,
+                "clearance_modifier": 1.0,
+                "toxicity_risk": "Low",
+                "description": "Standard processing rate."
+            },
+            "GA": {
+                "phenotype": "Fast ADH Activity",
+                "half_life_hours": 0.5,
+                "clearance_modifier": 1.5,
+                "toxicity_risk": "Moderate",
+                "description": "Rapid conversion to acetaldehyde. Facial flushing likely."
+            }
+        },
+        "axis_effects": {
+            "neuro": -5,
+            "detox": 8,
+            "drug_load": 5
+        },
+        "thresholds": {
+            "sleep_disruption": 20,
+            "liver_toxicity": 60,
+            "lethal": 300
+        }
+    },
+    {
+        "drug": "Paracetamol",
+        "type": "Analgesic",
+        "gene": "CYP2E1",
+        "variant_id": "rs3813867",
+        "v_d": 0.9,
+        "absorption_lag": 0.5,
+        "genotypes": {
+            "CC": {
+                "phenotype": "Normal Metabolizer",
+                "half_life_hours": 2,
+                "clearance_modifier": 1.0,
+                "toxicity_risk": "Low",
+                "description": "Safe at standard doses."
+            },
+            "GC": {
+                "phenotype": "Inducible Activity",
+                "half_life_hours": 1.5,
+                "clearance_modifier": 1.1,
+                "toxicity_risk": "Moderate",
+                "description": "Higher risk of toxic metabolite (NAPQI) accumulation."
+            }
+        },
+        "axis_effects": {
+            "neuro": 0,
+            "detox": 6,
+            "drug_load": 2
+        },
+        "thresholds": {
+            "sleep_disruption": 9999,
+            "liver_toxicity": 4000,
+            "lethal": 10000
+        }
+    },
+    {
+        "drug": "Ibuprofen",
+        "type": "Analgesic",
+        "gene": "CYP2C9",
+        "variant_id": "rs1057910",
+        "v_d": 0.15,
+        "absorption_lag": 1.5,
+        "genotypes": {
+            "AA": {
+                "phenotype": "Normal Metabolizer",
+                "half_life_hours": 2,
+                "clearance_modifier": 1.0,
+                "toxicity_risk": "Low",
+                "description": "Standard relief duration."
+            },
+            "AC": {
+                "phenotype": "Intermediate Metabolizer",
+                "half_life_hours": 3.5,
+                "clearance_modifier": 0.7,
+                "toxicity_risk": "Moderate",
+                "description": "Drug stays in system longer."
+            }
+        },
+        "axis_effects": {
+            "neuro": 0,
+            "detox": 4,
+            "drug_load": 3
+        },
+        "thresholds": {
+            "sleep_disruption": 9999,
+            "liver_toxicity": 3200,
+            "lethal": 5000
+        }
+    },
+    {
+        "drug": "Nicotine",
+        "type": "Stimulant",
+        "gene": "CYP2A6",
+        "variant_id": "rs1801272",
+        "v_d": 3.0,
+        "absorption_lag": 0.1,
+        "genotypes": {
+            "AA": {
+                "phenotype": "Normal Metabolizer",
+                "half_life_hours": 2,
+                "clearance_modifier": 1.0,
+                "toxicity_risk": "Moderate",
+                "description": "Standard addiction risk."
+            },
+            "TA": {
+                "phenotype": "Slow Metabolizer",
+                "half_life_hours": 3,
+                "clearance_modifier": 0.6,
+                "toxicity_risk": "Low",
+                "description": "Lower quantity needed for satisfaction."
+            }
+        },
+        "axis_effects": {
+            "neuro": 6,
+            "detox": 3,
+            "drug_load": 4
+        },
+        "thresholds": {
+            "sleep_disruption": 5,
+            "liver_toxicity": 50,
+            "lethal": 60
+        }
+    }
+]

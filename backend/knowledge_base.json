@@ -1,0 +1,25 @@
+{
+  "gene": "CYP1A2",
+  "variant_id": "rs762551",
+  "drug": "Caffeine",
+  "genotypes": {
+    "AA": {
+      "phenotype": "Fast Metabolizer",
+      "half_life_hours": 4,
+      "toxicity_risk": "Low",
+      "recommendation": "You can drink coffee until 4 PM."
+    },
+    "AC": {
+      "phenotype": "Slow Metabolizer",
+      "half_life_hours": 8,
+      "toxicity_risk": "Moderate",
+      "recommendation": "Stop coffee by 12 PM. Risk of insomnia."
+    },
+    "CC": {
+      "phenotype": "Slow Metabolizer",
+      "half_life_hours": 9,
+      "toxicity_risk": "High",
+      "recommendation": "Limit to 1 cup/day. High risk of jitters."
+    }
+  }
+}
